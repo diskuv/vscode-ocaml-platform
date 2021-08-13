@@ -27,10 +27,13 @@ val create_setting :
   -> to_json:('value -> Jsonoo.t)
   -> 'value setting
 
-(** replace ${workspaceFolder:folder_name} variables with workspace folder paths *)
+(** replace ${workspaceFolder:folder_name} variables with workspace folder paths
+    and ${pathSeparator} with the runtime enviroment's file path separator *)
 val resolve_workspace_vars : string -> string
 
-(** replace workspace folder paths with ${workspaceFolder:folder_name} variables *)
+(** replace workspace folder paths with ${workspaceFolder:folder_name}
+    variables, and possibly file path separators with ${pathSeparator} if and
+    only if there is a ${workspaceFolder:folder_name} replacement *)
 val substitute_workspace_vars : string -> string
 
 val server_extraEnv : unit -> string Interop.Dict.t option

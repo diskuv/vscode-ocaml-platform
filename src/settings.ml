@@ -36,6 +36,7 @@ let workspace_folder_var folder =
 let workspace_folder_path folder = Uri.fsPath (WorkspaceFolder.uri folder)
 
 let resolve_workspace_vars setting =
+  (* resolve ${workspaceFolder:xxx} *)
   let find_folder name =
     let pred folder = String.equal name (WorkspaceFolder.name folder) in
     List.find ~f:pred (Workspace.workspaceFolders ())
@@ -50,13 +51,34 @@ let resolve_workspace_vars setting =
     | _ -> assert false
     (* name will always be captured *)
   in
+  let setting = Interop.Regexp.replace setting ~regexp ~replacer in
+  (* resolve ${pathSeparator} *)
+  let regexp = Js_of_ocaml.Regexp.regexp "\\$\\{pathSeparator\\}" in
+  let replacer ~matched:_ ~captures:_ ~offset:_ ~string:_ =
+    Char.to_string Path.sep
+  in
   Interop.Regexp.replace setting ~regexp ~replacer
 
 let substitute_workspace_vars setting =
+  (* Windows paths are case-insensitive *)
+  let folder_replace_all =
+    match Platform.t with
+    | Win32 -> String.Caseless.substr_replace_all
+    | _ -> String.substr_replace_all
+  in
   List.fold (Workspace.workspaceFolders ()) ~init:setting ~f:(fun acc folder ->
-      String.substr_replace_all acc
-        ~pattern:(workspace_folder_path folder)
-        ~with_:(workspace_folder_var folder))
+      let acc' =
+        folder_replace_all acc
+          ~pattern:(workspace_folder_path folder)
+          ~with_:(workspace_folder_var folder)
+      in
+      if String.equal acc' acc then
+        (* no ${workspaceFolder:folder_name}, so pointless and verbose-y using
+           cross-platform ${pathSeparator} *)
+        acc
+      else
+        String.substr_replace_all acc' ~pattern:(Char.to_string Path.sep)
+          ~with_:"${pathSeparator}")
 
 module ExtraEnv = struct
   let setting =
