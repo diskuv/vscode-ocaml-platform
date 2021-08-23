@@ -22,6 +22,13 @@
 - Add `ocaml.server.extraEnv` configuration option to pass extra environment
   variables to the language server, i.e., OCaml-LSP (#674)
 
+## 1.8.5-diskuvocaml
+
+> Prerelease of 1.8.5 for [Diskuv OCaml](https://gitlab.com/diskuv/diskuv-ocaml)
+
+- Add support for Windows case-insensitive filenames and directories
+- Prune GitHub actions only to what is necessary to publish a .vsix installer
+
 ## 1.8.4
 
 - Fix inclusion of files in extension package
